@@ -15,9 +15,10 @@ import Data.Maybe (fromMaybe)
 
 data Trie a = Trie Bool (Map.Map a (Trie a)) deriving (Eq, Read, Show)
 
--- treeFold :: b -> (b -> a -> b -> b) -> Trie a -> Map
--- treeFold [] (Trie end nodes)    = 
--- treeFold (x:xs) (Trie _ nodes)  = xs (treeFold x xs nodes)
+filterTrie :: Ord a => (Trie a -> Trie a) -> [a] -> Trie a -> Trie a
+filterTrie f as t = if member as t then filterTrie' f as t else t
+  where
+    filterTrie' f as@(x:xs) t@(Trie end nodes) = fromMaybe t (f <$> Map.lookup x nodes)
 
 empty :: Trie a
 empty = Trie False Map.empty
@@ -35,8 +36,8 @@ mkTrie as = mkTrie' as empty
 dictionary = mkTrie ["bad", "good", "heat", "heater", "help", "helper", "hot", "hotter", "hottest", "p", "pi", "sad", "said"]
 
 member :: Ord a => [a] -> Trie a -> Bool
-member []     (Trie end _) = end
-member (x:xs) (Trie _ nodes) = fromMaybe False (member xs <$> Map.lookup x nodes)
+member []     (Trie end _)    = end
+member (x:xs) (Trie _ nodes)  = fromMaybe False (member xs <$> Map.lookup x nodes)
 
 lengthOfChildNodes :: Trie a -> Int
 lengthOfChildNodes (Trie _ nodes) = Map.size nodes
